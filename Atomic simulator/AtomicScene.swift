@@ -15,6 +15,9 @@ class AtomicScene: SKScene {
     
     var scrollMonitor: Any?
     var world = 1
+    var Particlelookingat = 0
+    let k = 10
+    var changeConstant = 1.0
     var Particles: [Particle] = []
     var cameraNode: SKCameraNode!
     override var acceptsFirstResponder: Bool { return true }
@@ -61,7 +64,7 @@ class AtomicScene: SKScene {
         UserDefaults.standard.set(Particles, forKey: "Particles \(world)")
     }
     
-    
+    //MARK: create particle
     func CreateParticle(position: CGPoint, type: ParticleTypeBlueprint) {
        
         var setRadius = CGFloat(0.0)
@@ -72,7 +75,7 @@ class AtomicScene: SKScene {
         switch type {
             
         case .electron:
-            setRadius = 0.1
+            setRadius = 5
             setMass = 0.000548579909
             setColour = .blue
             setCharge = -1
@@ -93,9 +96,64 @@ class AtomicScene: SKScene {
         var newParticle = Particle(radius: setRadius, mass: setMass, particleColor: setColour, charge: setCharge)
         Particles.append(newParticle)
         addChild(newParticle)
+        newParticle.position = position
         
     }
     
+    
+    func applyForces() {
+        
+        
+        
+        for i in 0..<Particles.count {
+            
+            let thisParticle = Particles[i]
+            
+            for j in 0..<Particles.count where i != j {
+                
+                
+                let thatParticle = Particles[j]
+                
+                let distX = thatParticle.position.x - thisParticle.position.x
+                let distY = thatParticle.position.y - thisParticle.position.y
+                let dx = (thatParticle.position.x - thisParticle.position.x) * (thatParticle.position.x - thisParticle.position.x) + 1.0
+                let dy = (thatParticle.position.y - thisParticle.position.y) * (thatParticle.position.y - thisParticle.position.y) + 1.0
+                let dist = sqrt(dx+dy + 100)
+                
+                if (thatParticle.charge + thisParticle.charge > 0 || thatParticle.charge == 0 && thisParticle.charge == 0) && dist < 200 && dist > 30 {
+                    
+                    thisParticle.dx += (distX/dist) * 15 * (dist - 60)
+                    thisParticle.dy += (distY/dist) * 15 * (dist - 60)
+                    
+                    
+                } else if dist < 30 {
+                    /*thisParticle.dx -= 100
+                    thisParticle.dy -= 100 */
+                    
+                } else {
+                    
+                    
+                   
+                    let forcemagnitude = CGFloat(k) * (CGFloat(thatParticle.charge * thisParticle.charge) / dist)
+                    thisParticle.dx -= (distX / dist) * forcemagnitude
+                    thisParticle.dy -= (distY / dist) * forcemagnitude
+                    
+                }
+                
+                thisParticle.dx *= changeConstant
+                thisParticle.dy *= changeConstant
+                
+            }
+            
+            thisParticle.applyForce()
+            
+            
+            
+            
+        }
+        
+        
+    }
     
     
     override func didMove(to view: SKView) {
@@ -115,11 +173,36 @@ class AtomicScene: SKScene {
         view.window?.makeFirstResponder(view)
         
         
-        for i in 0..<100 {
-            let x = Int.random(in: -100...100)
-            let y = Int.random(in: -100...100)
-            CreateParticle(position: CGPoint(x: x, y: y) ,type: .proton)
+        for i in 0..<200 {
+            let sidelend = 10.5
+            let x = Double.random(in: -sidelend...sidelend)
+            let y = Double.random(in: -sidelend...sidelend)
+            
+            let type = Int.random(in: 1...3)
+            
+            var type2: ParticleTypeBlueprint = .electron
+            
+            switch type {
+                
+            case 1:
+                type2 = .electron
+                
+            case 2:
+            type2 = .proton
+            case 3:
+                type2 = .neutron
+            
+            default:
+                type2 = .electron
+                
+            }
+            
+            CreateParticle(position: CGPoint(x: x, y: y) ,type: type2)
+            
+            
         }
+        
+        
         
         cameraNode = SKCameraNode()
         
@@ -131,6 +214,20 @@ class AtomicScene: SKScene {
     
     override func update(_ currentTime: TimeInterval) {
         
+        applyForces()
+        
+        for i in 0..<Particles.count {
+            
+                Particles[i].dx *= 0.95
+                Particles[i].dy *= 0.95
+            
+            
+        }
+        if Particlelookingat == -1 {
+            cameraNode.position = CGPoint(x: 0.0, y: 0.0)
+        } else {
+            cameraNode.position = Particles[Particlelookingat].position
+        }
         
     }
     
@@ -148,7 +245,19 @@ class AtomicScene: SKScene {
         }
     
     
-    
+    override func keyDown(with event: NSEvent) {
+        
+        if event.keyCode == 123 && Particlelookingat - 1 > -2 {
+            
+            Particlelookingat -= 1
+        }
+        
+        if event.keyCode == 124 && Particlelookingat + 1 < Particles.count - 1 {
+            Particlelookingat += 1
+        }
+        
+        
+    }
     ///100% ai
     func handleScroll(with event: NSEvent) {
              // Visual confirmation
@@ -179,6 +288,20 @@ class AtomicScene: SKScene {
         var mass = 0.0
         var particleColour: SKColor = .red
         var radius = CGFloat(0.0)
+        var dx = 0.0
+        var dy = 0.0
+        
+        
+        
+        func allFuncs() {
+            
+            
+        }
+        
+        func applyForce() {
+            self.position.x += CGFloat(dx)
+            self.position.y += CGFloat(dy)
+        }
         
         ///1 is for positive 0 is for neutral and -1 is for negative
         var charge = 1

@@ -255,7 +255,7 @@ struct ContentView: View {
             
             
         case .game://MARK: GAME CODE
-        Text("fffwqf")
+       
             //copied from AI
             MacSpriteView(scene: atomicScene)
                     .ignoresSafeArea()
