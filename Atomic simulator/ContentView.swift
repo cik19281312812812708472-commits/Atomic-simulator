@@ -8,6 +8,25 @@
 import SwiftUI
 import _SpriteKit_SwiftUI
 
+struct MacSpriteView: NSViewRepresentable {
+    let scene: SKScene
+
+    func makeNSView(context: Context) -> SKView {
+        let view = SKView()
+        view.allowsTransparency = true
+        // This ensures the view starts listening for mouse/scroll immediately
+        DispatchQueue.main.async {
+            view.window?.makeFirstResponder(view)
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: SKView, context: Context) {
+        if nsView.scene == nil {
+            nsView.presentScene(scene)
+        }
+    }
+}
 
 enum AppStateBlueprint {
     
@@ -27,6 +46,14 @@ struct ContentView: View {
     @State private var animationdone = false
     @State private var titleY = 1.0
     @State private var world = 1
+    
+    @State private var atomicScene: AtomicScene = {
+        let scene = AtomicScene()
+        scene.scaleMode = .resizeFill
+        return scene
+        
+        
+    }()
     
     ///a custom var to save the last location
     @State private var lastloc: AppStateBlueprint = .begining
@@ -227,14 +254,13 @@ struct ContentView: View {
             
             
             
-        case .game:
-            //copied from Iron bean 2.0
-            GeometryReader { geo in
-                           
-                           SpriteView(scene: AtomicScene(size: geo.size))
-                               .ignoresSafeArea()
-                               .frame(maxWidth: .infinity, maxHeight: .infinity)// to fix the player pos changing when changing window sizes
-                       }
+        case .game://MARK: GAME CODE
+        Text("fffwqf")
+            //copied from AI
+            MacSpriteView(scene: atomicScene)
+                    .ignoresSafeArea()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+          
             
         case .createworld: //MARK: CREATE WORLD
             
