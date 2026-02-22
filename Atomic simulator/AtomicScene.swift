@@ -13,10 +13,11 @@ import GameplayKit
 
 class AtomicScene: SKScene {
     
+    var bordersize = 1000.0
     var scrollMonitor: Any?
     var world = 1
     var Particlelookingat = 0
-    let k = 10
+    let k = 2
     var changeConstant = 1.0
     var Particles: [Particle] = []
     var cameraNode: SKCameraNode!
@@ -126,9 +127,9 @@ class AtomicScene: SKScene {
                     thisParticle.dy += (distY/dist) * 15 * (dist - 60)
                     
                     
-                } else if dist < 30 {
-                    /*thisParticle.dx -= 100
-                    thisParticle.dy -= 100 */
+                } else if dist < 30 && (thatParticle.charge + thisParticle.charge > 0 || thatParticle.charge == 0 && thisParticle.charge == 0) {
+                    thisParticle.dx += 1
+                    thisParticle.dy += 1
                     
                 } else {
                     
@@ -173,8 +174,8 @@ class AtomicScene: SKScene {
         view.window?.makeFirstResponder(view)
         
         
-        for i in 0..<200 {
-            let sidelend = 10.5
+        for i in 0..<Int(0.5 * bordersize) {
+            let sidelend = 0.5 * bordersize * 10.5
             let x = Double.random(in: -sidelend...sidelend)
             let y = Double.random(in: -sidelend...sidelend)
             
@@ -190,10 +191,10 @@ class AtomicScene: SKScene {
             case 2:
             type2 = .proton
             case 3:
-                type2 = .neutron
+                type2 = .electron
             
             default:
-                type2 = .electron
+                type2 = .proton
                 
             }
             
@@ -214,15 +215,17 @@ class AtomicScene: SKScene {
     
     override func update(_ currentTime: TimeInterval) {
         
-        applyForces()
+        
         
         for i in 0..<Particles.count {
             
-                Particles[i].dx *= 0.95
-                Particles[i].dy *= 0.95
-            
+                Particles[i].dx *= 0.999
+                Particles[i].dy *= 0.999
+           // Particles[i].bounceofborder(Bordersize: bordersize)
             
         }
+        applyForces()
+        
         if Particlelookingat == -1 {
             cameraNode.position = CGPoint(x: 0.0, y: 0.0)
         } else {
@@ -298,6 +301,36 @@ class AtomicScene: SKScene {
             
         }
         
+        /*
+        func bounceofborder(Bordersize: Double) {
+            
+            if self.position.x > Bordersize / 2 || self.position.x < -Bordersize / 2 {
+                
+              //  self.dx *= -1
+                if self.position.x > Bordersize / 2 {
+                    self.position.x = Bordersize / 2
+                    
+                } else {
+                    
+                    self.position.x = -Bordersize / 2
+                }
+                
+            }
+         
+            if self.position.y > Bordersize / 2 || self.position.y < -Bordersize / 2 {
+                
+               // self.dy *= -1
+                if self.position.y > Bordersize / 2 {
+                    self.position.y = Bordersize / 2
+                    
+                } else {
+                    
+                    self.position.y = -Bordersize / 2
+                }
+            }
+        }
+        
+        */
         func applyForce() {
             self.position.x += CGFloat(dx)
             self.position.y += CGFloat(dy)
